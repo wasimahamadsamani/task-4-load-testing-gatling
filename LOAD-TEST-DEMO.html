@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 4: Load Testing Live Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 950px;
+            padding: 40px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .demo-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #f39c12;
+        }
+        .demo-section h2 {
+            color: #f39c12;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .test-config {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        .config-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        input[type="number"], input[type="text"] {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            flex: 1;
+            min-width: 120px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-run {
+            background: #f39c12;
+            color: white;
+        }
+        .btn-run:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(243,156,18,0.3);
+        }
+        .btn-stop {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-stop:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231,76,60,0.3);
+        }
+        .results-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f7ff;
+            border-radius: 6px;
+            border: 1px solid #dceefb;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .metric {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #f39c12;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f39c12;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f39c12, #e67e22);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+        }
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            color: #856404;
+            font-size: 13px;
+        }
+        .scenario {
+            padding: 12px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid #f39c12;
+            color: #555;
+            font-size: 13px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-pass { background: #d4edda; color: #155724; }
+        .status-fail { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Load Testing Demo</h1>
+        <p class="subtitle">Gatling Performance Testing Simulator</p>
+        
+        <div class="demo-section">
+            <h2>Basic Load Test Configuration</h2>
+            <div class="test-config">
+                <div class="config-label">Test Parameters</div>
+                <div class="input-group">
+                    <input type="number" id="users" placeholder="Number of Users" value="10" min="1" max="1000">
+                    <input type="number" id="rampUp" placeholder="Ramp-up (seconds)" value="10" min="1" max="300">
+                    <input type="number" id="duration" placeholder="Duration (seconds)" value="60" min="10" max="600">
+                </div>
+                <div class="button-group">
+                    <button class="btn-run" onclick="startLoadTest()">Start Load Test</button>
+                    <button class="btn-stop" onclick="stopLoadTest()">Stop Test</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Real-Time Metrics</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar">0%</div>
+            </div>
+            <div class="metric">
+                <div class="metric-card">
+                    <div class="metric-label">Requests/sec</div>
+                    <div class="metric-value" id="rps">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Active Users</div>
+                    <div class="metric-value" id="activeUsers">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg Response (ms)</div>
+                    <div class="metric-value" id="avgResponse">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">95th Percentile (ms)</div>
+                    <div class="metric-value" id="p95Response">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Test Scenarios</h2>
+            <div class="info-box">
+                Simulating Gatling load tests with realistic HTTP requests
+            </div>
+            <div id="scenarioList">
+                <div class="scenario">Scenario: Basic - 10 users, 10s ramp-up <span class="status status-pass">READY</span></div>
+                <div class="scenario">Scenario: Stress - 100 users, 5s ramp-up <span class="status status-pass">READY</span></div>
+                <div class="scenario">Scenario: Soak - 50 users, 30s duration <span class="status status-pass">READY</span></div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Performance Results</h2>
+            <div class="results-box" id="results" style="display:none;">
+                <strong>Test Execution Summary</strong><br><br>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Gatling Features Demonstrated</h2>
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">HTTP Protocol Support (GET, POST, PUT, DELETE)</li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">User Ramp-up & Simulation</li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">Response Time Analysis & Percentiles</li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">Real-time Metrics & Reporting</li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">Assertion Validation</li>
+                <li style="padding: 8px 0;">CI/CD Integration (Maven/Gradle)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        let testRunning = false;
+        let testProgress = 0;
+        
+        function startLoadTest() {
+            const users = parseInt(document.getElementById('users').value);
+            const rampUp = parseInt(document.getElementById('rampUp').value);
+            const duration = parseInt(document.getElementById('duration').value);
+            
+            testRunning = true;
+            testProgress = 0;
+            
+            const progressInterval = setInterval(() => {
+                testProgress += Math.random() * 15;
+                if (testProgress > 100) testProgress = 100;
+                
+                updateMetrics(users, rampUp, duration, testProgress);
+                document.getElementById('progressBar').style.width = testProgress + '%';
+                document.getElementById('progressBar').textContent = Math.round(testProgress) + '%';
+                
+                if (testProgress >= 100 || !testRunning) {
+                    clearInterval(progressInterval);
+                    if (testProgress >= 100) {
+                        showResults(users, rampUp, duration);
+                    }
+                }
+            }, 500);
+        }
+        
+        function stopLoadTest() {
+            testRunning = false;
+        }
+        
+        function updateMetrics(users, rampUp, duration, progress) {
+            const activeUsers = Math.floor((progress / 100) * users);
+            const rps = activeUsers * (5 + Math.random() * 10);
+            const avgResponse = 50 + Math.random() * 450;
+            const p95Response = avgResponse * (1.5 + Math.random());
+            
+            document.getElementById('activeUsers').textContent = activeUsers;
+            document.getElementById('rps').textContent = Math.round(rps);
+            document.getElementById('avgResponse').textContent = Math.round(avgResponse);
+            document.getElementById('p95Response').textContent = Math.round(p95Response);
+        }
+        
+        function showResults(users, rampUp, duration) {
+            const totalRequests = Math.floor(Math.random() * 5000 + 1000);
+            const successfulRequests = Math.floor(totalRequests * 0.98);
+            const failedRequests = totalRequests - successfulRequests;
+            const avgResponseTime = Math.round(100 + Math.random() * 500);
+            const maxResponseTime = Math.round(avgResponseTime * (2 + Math.random()));
+            
+            const resultHTML = `
+                Total Requests: ${totalRequests}<br>
+                Successful: ${successfulRequests} (${((successfulRequests/totalRequests)*100).toFixed(2)}%)<br>
+                Failed: ${failedRequests}<br>
+                Avg Response Time: ${avgResponseTime}ms<br>
+                Max Response Time: ${maxResponseTime}ms<br>
+                95th Percentile: ${Math.round(avgResponseTime * 1.8)}ms<br>
+                Mean Throughput: ${Math.round(totalRequests / duration)} req/sec<br>
+                Test Duration: ${duration}s
+            `;
+            
+            document.getElementById('resultContent').innerHTML = resultHTML;
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
